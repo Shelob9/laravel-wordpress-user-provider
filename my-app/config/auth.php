@@ -67,7 +67,7 @@ return [
 
     'providers' => [
         'users' => [
-            'driver' => 'eloquent',
+            'driver' => 'wordpress',
             'model' => App\Models\User::class,
         ],
 
