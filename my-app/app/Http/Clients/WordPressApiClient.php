@@ -4,9 +4,14 @@
 namespace App\Http\Clients;
 
 
-use App\DTO\UserResponse;
 use Illuminate\Support\Facades\Http;
 
+/**
+ * API client for WordPress REST API
+ *
+ * Must have the JWT auth plugin
+ * https://wordpress.org/plugins/jwt-auth/
+ */
 class WordPressApiClient
 {
 

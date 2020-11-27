@@ -22,12 +22,10 @@ class WordPressUserProvider  implements  UserProvider
     protected WordPressApiClient $wordpressClient;
 
 
-
-
     public function __construct()
     {
         $this->wordpressClient = new WordPressApiClient(
-            'https://calderaforms.com/wp-json'
+            env('WP_API_URL')
         );
 
     }
@@ -37,15 +35,6 @@ class WordPressUserProvider  implements  UserProvider
         return User::class;
     }
 
-    /**
-     * Bootstrap services.
-     *
-     * @return void
-     */
-    public function boot()
-    {
-        //
-    }
 
     protected function cacheKey($identifier):string {
         return __CLASS__ . $identifier;
