@@ -6,6 +6,8 @@ I didn't integrate this with user registration and probably will not.
 
 Requires a WordPress site with [the JWT authentication plugin](https://wordpress.org/plugins/jwt-auth/).
 
+For a different approach to the same problem, [see this package](https://github.com/ahsankhatri/wordpress-auth-driver-laravel). That package requires access to WordPress' MySQL database. This example does not, instead it uses HTTPS.
+
 ## Setup
 
 The Laravel app is in the directory "my-app".
