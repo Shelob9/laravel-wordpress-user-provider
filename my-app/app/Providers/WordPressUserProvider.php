@@ -2,10 +2,16 @@
 
 namespace App\Providers;
 
+use App\DTO\UserResponse;
 use App\Http\Clients\WordPressApiClient;
 use App\Models\User;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\UserProvider;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\ServiceProvider;
 
 class WordPressUserProvider  implements  UserProvider
@@ -16,7 +22,6 @@ class WordPressUserProvider  implements  UserProvider
     protected WordPressApiClient $wordpressClient;
 
 
-    protected array $userCache;
 
 
     public function __construct()
@@ -42,10 +47,17 @@ class WordPressUserProvider  implements  UserProvider
         //
     }
 
+    protected function cacheKey($identifier):string {
+        return __CLASS__ . $identifier;
+    }
     public function retrieveById($identifier)
     {
-        if( array_key_exists($identifier,$this->userCache)){
-            return $this->userCache[$identifier];
+        $user = Cache::get(
+            $this->cacheKey($identifier)
+        );
+        if( $user ){
+            return (new User())
+                ->forceFill($user);
         }
 
         //must login
@@ -53,25 +65,48 @@ class WordPressUserProvider  implements  UserProvider
 
     public function retrieveByToken($identifier, $token)
     {
-        $r = $this->wordpressClient->validateToken($token,$identifier);
+        $user = $this->retrieveById($identifier);
+        if( ! $user ){
+            $r = $this->wordpressClient->get('/wp-json/wp/v2/me');
+            return $this->userFactory($r);
+        }
 
     }
 
     public function updateRememberToken(Authenticatable $user, $token)
     {
+        //???
+        dd(__LINE__);
         // TODO: Implement updateRememberToken() method.
     }
 
     public function retrieveByCredentials(array $credentials)
     {
-        dd(1,$credentials);
-        $r = $this->wordpressClient->getToken($credentials['username'], $credentials['password']);
+        $r = $this->wordpressClient->getToken($credentials['email'], $credentials['password']);
+        return $this->userFactory($r);
     }
 
     public function validateCredentials(Authenticatable $user, array $credentials)
-    {        dd(11,$credentials);
+    {
+        //Recheck token?
+        Auth::setUser($user);
+       return $this->retrieveById($user->id);
 
-        $r = $this->wordpressClient->getToken($credentials['username'], $credentials['password']);
+    }
+
+
+    protected function userFactory(array $data) : User
+    {
+        $user =  ( new UserResponse(
+            Arr::only($data,[
+                'token',
+                'ID',
+                'user_email'
+            ])
+        ) )
+            ->toModel();
+       Cache::put($this->cacheKey($user->getAuthIdentifier()),$user->toArray(),9000);
+       return  $user;
     }
 
 }
