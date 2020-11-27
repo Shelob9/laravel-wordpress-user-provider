@@ -1,0 +1,16 @@
+version: '3.1'
+
+services:
+  one:
+    image: php:7.4-apache
+    ports:
+      - 1001:80
+    volumes:
+      - ./one:/var/www/html/
+  two:
+    image: php:7.4-apache
+    ports:
+      - 2002:80
+    volumes:
+      - ./two:/var/www/html/
+
